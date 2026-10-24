@@ -1,0 +1,6 @@
+{
+  "name": "Sherlog - Incident Investigation Agent System",
+  "description": "Autonomous root-cause analysis agent system investigating software incidents across fragmented sources using Zetaris and Meterless Nightshift with cited evidence.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-charcoal: #0e0f12;
+    --bg-card: #15171c;
+    --bg-card-subtle: #1a1c22;
+    --border-ink: #272a33;
+    --border-ink-strong: #383c48;
+    --text-parchment: #f2efe9;
+    --text-muted: #9c9990;
+    --text-faint: #67655e;
+    --accent-amber: #f59e0b;
+    --accent-amber-light: #fbbf24;
+    --accent-amber-dark: #b45309;
+    --alert-crimson: #ef4444;
+    --valid-green: #10b981;
+  }
+
+  body {
+    background-color: var(--bg-charcoal);
+    color: var(--text-parchment);
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  .font-serif {
+    font-family: 'Lora', Georgia, Cambria, 'Times New Roman', serif;
+  }
+}
+
+/* Custom Scrollbars for Forensic Console */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #111216;
+}
+::-webkit-scrollbar-thumb {
+  background: #272a33;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3c404d;
+}
+
+/* Stamp styles */
+.case-stamp {
+  position: relative;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Subtle pulse for active investigation */
+@keyframes teletype-glow {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.4; }
+}
+
+.animate-teletype {
+  animation: teletype-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
