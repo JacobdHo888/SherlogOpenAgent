@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Compass,
   Search,
   CheckSquare,
   ShieldAlert,
   BrainCircuit,
-  CornerDownRight,
   Terminal,
+  ChevronDown,
+  ChevronUp,
   Clock,
   Sparkles,
 } from 'lucide-react';
@@ -25,165 +26,151 @@ export const AgentTraceView: React.FC<AgentTraceViewProps> = ({
   isInvestigating,
   status,
 }) => {
-  const getAgentBadge = (agent: string) => {
+  const [expandedTraceIds, setExpandedTraceIds] = useState<Record<string, boolean>>({});
+
+  const toggleTrace = (id: string) => {
+    setExpandedTraceIds((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const getAgentLabel = (agent: string) => {
     switch (agent) {
       case 'planner':
-        return {
-          icon: <Compass className="w-3.5 h-3.5 text-amber-400" />,
-          label: 'PLANNER',
-          border: 'border-amber-500/40 text-amber-300 bg-amber-950/20',
-        };
+        return 'Planner';
       case 'investigator':
-        return {
-          icon: <Search className="w-3.5 h-3.5 text-amber-300" />,
-          label: 'INVESTIGATOR',
-          border: 'border-zinc-700 text-[#e6e4df] bg-[#1a1c22]',
-        };
+        return 'Investigator';
       case 'evaluator':
-        return {
-          icon: <CheckSquare className="w-3.5 h-3.5 text-amber-400" />,
-          label: 'EVALUATOR',
-          border: 'border-amber-600/50 text-amber-300 bg-amber-950/30',
-        };
+        return 'Evaluator';
       case 'risk_domain':
-        return {
-          icon: <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />,
-          label: 'RISK / NEMOTRON',
-          border: 'border-amber-500 text-amber-300 bg-[#221c12]',
-        };
+        return 'Risk Agent';
       case 'hmem_engine':
-        return {
-          icon: <BrainCircuit className="w-3.5 h-3.5 text-amber-400" />,
-          label: 'H-MEM ENGINE',
-          border: 'border-zinc-700 text-zinc-300 bg-[#16181e]',
-        };
+        return 'H-MEM Engine';
       default:
-        return {
-          icon: <Terminal className="w-3.5 h-3.5 text-zinc-400" />,
-          label: 'AGENT',
-          border: 'border-zinc-800 text-zinc-400 bg-zinc-900',
-        };
+        return 'Agent';
     }
   };
 
   const isNemotron = (model: string) => model.toLowerCase().includes('nemotron');
 
   return (
-    <div className="bg-[#14161b] border border-[#272a33] rounded text-[#f2efe9] flex flex-col h-full shadow-sm">
-      {/* Header */}
-      <div className="p-3.5 border-b border-[#23262f] flex items-center justify-between bg-[#111216] font-mono">
-        <div className="flex items-center gap-2">
-          <Terminal className="w-4 h-4 text-amber-400" />
-          <h2 className="text-xs font-bold text-[#f2efe9] uppercase tracking-wider">
-            Agent Dispatch & Reasoning Trace
-          </h2>
+    <div className="space-y-4">
+      {/* Header bar */}
+      <div className="flex items-center justify-between text-xs text-[#9c9990] font-mono pb-1">
+        <div>
+          <span>Executed steps: </span>
+          <span className="font-bold text-[#f2efe9]">{traces.length}</span>
+          <span className="text-[#363942] mx-2">·</span>
+          <span>Nightshift model calls: </span>
+          <span className="font-bold text-amber-400">{modelLogs.length}</span>
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] text-[#9c9990]">
-          <span>Nightshift:</span>
-          <span className="font-bold text-amber-400">{modelLogs.length} calls</span>
+        <div className="text-[11px]">
+          Status: <span className="font-bold uppercase text-[#c7c4bc]">{status}</span>
         </div>
       </div>
 
-      {/* Trace Log Body */}
-      <div className="p-3.5 flex-1 overflow-y-auto space-y-3 font-mono max-h-[640px]">
-        {traces.length === 0 ? (
-          <div className="py-16 text-center text-[#67655e] text-xs space-y-2">
-            <p className="uppercase tracking-widest text-[11px]">[ DISPATCH CONSOLE IDLE ]</p>
-            <p className="text-[#9c9990] font-sans">
-              Click <strong className="text-amber-400">"START INVESTIGATION"</strong> to launch the Planner, Zetaris Investigator, Evaluator, and Nemotron Challenger loop.
-            </p>
-          </div>
-        ) : (
-          traces.map((trace) => {
-            const agentMeta = getAgentBadge(trace.agent);
+      {traces.length === 0 ? (
+        <div className="bg-[#14161b] border border-[#272a33] rounded-lg p-12 text-center text-[#9c9990] space-y-2">
+          <p className="font-serif text-lg text-[#f2efe9]">Agent trace idle</p>
+          <p className="text-sm">Click "Start investigation" to trigger the multi-agent reasoning loop.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {traces.map((trace) => {
+            const isExpanded = !!expandedTraceIds[trace.id];
             const nemotron = isNemotron(trace.modelUsed);
 
             return (
               <div
                 key={trace.id}
-                className={`p-3 rounded border text-xs transition-opacity duration-300 animate-in fade-in ${
-                  trace.isCritiqueIteration
-                    ? 'bg-[#1b1712] border-amber-800/60'
-                    : 'bg-[#0f1013] border-[#22252e]'
-                }`}
+                className="bg-[#14161b] border border-[#272a33] rounded-md overflow-hidden text-sm"
               >
-                {/* Agent + Model info bar */}
-                <div className="flex flex-wrap items-center justify-between gap-1.5 mb-2">
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`px-1.5 py-0.5 rounded border text-[10px] font-bold flex items-center gap-1 ${agentMeta.border}`}
-                    >
-                      {agentMeta.icon}
-                      <span>{agentMeta.label}</span>
+                {/* One line per step (Collapsed by default) */}
+                <button
+                  onClick={() => toggleTrace(trace.id)}
+                  className="w-full px-4 py-3 flex items-center justify-between gap-3 text-left hover:bg-[#181a20] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="font-mono text-xs font-bold text-amber-400 shrink-0 w-24">
+                      {getAgentLabel(trace.agent)}
                     </span>
 
-                    <span className="text-[#363942]">/</span>
-                    <span className="text-[#c7c4bc] font-semibold text-[11px]">{trace.title}</span>
+                    <span className="text-[#f2efe9] truncate font-sans">
+                      {trace.title}
+                    </span>
+
+                    {trace.isCritiqueIteration && (
+                      <span className="bg-amber-950/70 text-amber-300 border border-amber-800/60 text-xs px-2 py-0.2 rounded font-mono shrink-0">
+                        Critique loop
+                      </span>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-[10px]">
+                  <div className="flex items-center gap-3 shrink-0 text-xs font-mono">
                     <span
-                      className={`px-1.5 py-0.5 rounded border ${
+                      className={`px-2 py-0.5 rounded border text-[11px] ${
                         nemotron
-                          ? 'bg-amber-950/40 border-amber-600/70 text-amber-300 font-bold'
-                          : 'bg-[#16181e] border-[#272a33] text-[#9c9990]'
+                          ? 'bg-amber-950/50 border-amber-600/60 text-amber-300 font-semibold'
+                          : 'bg-[#181a20] border-[#272a33] text-[#9c9990]'
                       }`}
                     >
-                      {nemotron ? 'NEMOTRON-340B' : trace.modelUsed}
+                      {nemotron ? 'Nemotron 340B' : trace.modelUsed}
                     </span>
+
                     <span className="text-[#67655e]">{trace.durationMs}ms</span>
+
+                    {isExpanded ? (
+                      <ChevronUp className="w-4 h-4 text-[#9c9990]" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-[#9c9990]" />
+                    )}
                   </div>
-                </div>
+                </button>
 
-                {/* Cognitive thought */}
-                <p className="text-[#d8d5ce] leading-relaxed text-[11.5px] font-sans pl-2 border-l border-[#272a33] mb-2">
-                  {trace.thought}
-                </p>
+                {/* Expanded full detail panel */}
+                {isExpanded && (
+                  <div className="px-4 pb-4 pt-2 border-t border-[#23262f] bg-[#0e0f13] space-y-3 text-xs leading-relaxed animate-in fade-in duration-150">
+                    <div>
+                      <div className="text-[10px] uppercase font-mono text-[#9c9990] mb-1">
+                        Agent Thought & Reasoning:
+                      </div>
+                      <p className="text-[#d8d5ce] font-sans text-sm leading-relaxed bg-[#14161b] p-3 rounded border border-[#20222a]">
+                        {trace.thought}
+                      </p>
+                    </div>
 
-                {/* Action summary */}
-                <div className="flex items-start gap-1.5 text-[#9c9990] text-[11px] bg-[#14161b] p-1.5 rounded border border-[#20222a]">
-                  <CornerDownRight className="w-3 h-3 text-amber-400 shrink-0 mt-0.5" />
-                  <span className="text-[#c7c4bc] truncate">{trace.actionTaken}</span>
-                </div>
+                    <div>
+                      <div className="text-[10px] uppercase font-mono text-[#9c9990] mb-1">
+                        Action Executed:
+                      </div>
+                      <p className="text-[#c7c4bc] font-mono text-xs bg-[#14161b] p-2.5 rounded border border-[#20222a]">
+                        {trace.actionTaken}
+                      </p>
+                    </div>
 
-                {/* Critique alert if this loopbacked */}
-                {trace.critiqueFeedback && (
-                  <div className="mt-2 p-2 bg-[#20150e] border border-amber-700/60 rounded text-[11px] text-amber-300">
-                    <span className="font-bold">[EVALUATOR CRITIQUE]: </span>
-                    <span className="text-[#f2efe9]">{trace.critiqueFeedback}</span>
+                    {trace.critiqueFeedback && (
+                      <div className="p-3 bg-[#1e1510] border border-amber-700/60 rounded text-amber-300 font-mono text-xs">
+                        <span className="font-bold">[Evaluator Feedback]: </span>
+                        <span>{trace.critiqueFeedback}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             );
-          })
-        )}
-
-        {/* Live indicator */}
-        {isInvestigating && (
-          <div className="p-3 rounded bg-[#16181e] border border-amber-500/30 flex items-center gap-2.5 text-xs text-amber-300 animate-pulse">
-            <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-            <div className="font-mono">
-              <span>METERLESS NIGHTSHIFT ROUTING ACTIVE...</span>
-              <div className="text-[10px] text-[#9c9990]">Awaiting next agent decision cycle</div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Footer Audit Stats */}
-      <div className="p-2.5 border-t border-[#23262f] bg-[#111216] text-[11px] font-mono text-[#9c9990] flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <Clock className="w-3 h-3 text-[#67655e]" />
-          <span>Status: {status.toUpperCase()}</span>
+          })}
         </div>
-        <div>
-          Tokens:{' '}
-          <span className="text-[#f2efe9] font-bold">
-            {modelLogs.reduce((acc, m) => acc + m.promptTokens + m.completionTokens, 0).toLocaleString()}
-          </span>
+      )}
+
+      {/* Live Loading Pulse */}
+      {isInvestigating && (
+        <div className="p-4 rounded-md bg-[#16181e] border border-amber-500/30 flex items-center gap-3 text-xs text-amber-300 animate-pulse font-mono">
+          <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>Active model call routing via Meterless Nightshift...</span>
         </div>
-      </div>
+      )}
     </div>
   );
 };

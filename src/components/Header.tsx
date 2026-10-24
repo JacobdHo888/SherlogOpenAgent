@@ -1,5 +1,5 @@
-import React from 'react';
-import { Play, Sparkles, Terminal, RefreshCw, FolderSearch, Radio } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Play, RefreshCw, MoreHorizontal, Sparkles, Terminal, Info, Check } from 'lucide-react';
 
 interface HeaderProps {
   activeIncidentId: string;
@@ -22,127 +22,146 @@ export const Header: React.FC<HeaderProps> = ({
   mode,
   onToggleMode,
 }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <header className="border-b border-[#23262f] bg-[#111216] text-[#f2efe9] sticky top-0 z-40">
-      <div className="max-w-[1560px] mx-auto px-4 lg:px-6 py-2.5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* Logo & Dossier Badge */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded border border-amber-500/40 bg-amber-500/10 flex items-center justify-center text-amber-400 font-mono text-sm font-bold shadow-inner">
-              SH
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold tracking-tight text-sm text-[#f2efe9] font-mono">SHERLOG</span>
-                <span className="text-[11px] text-[#67655e] font-mono">· CASE INVESTIGATOR</span>
-                <span className="text-[#363942]">/</span>
-                <span className="text-[11px] text-amber-400 font-mono uppercase tracking-wider">
-                  The Agent That Can Explain Why
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-[11px] text-[#9c9990] font-mono">
-                <span>Zetaris Data Layer</span>
-                <span className="text-[#414552]">·</span>
-                <span>Meterless Nightshift</span>
-                <span className="text-[#414552]">·</span>
-                <span>NVIDIA Nemotron 340B</span>
-              </div>
-            </div>
-          </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+        {/* Brand & Mode Indicator */}
+        <div className="flex items-center gap-3">
+          <span className="font-bold text-base tracking-tight text-[#f2efe9]">
+            Sherlog
+          </span>
+          <span className="text-xs text-[#67655e]">/</span>
 
-          {/* Operational Controls & Case Actions */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Sample Mode Dossier Badge */}
-            <div className="flex items-center rounded border border-[#272a33] bg-[#16181e] p-0.5 text-xs font-mono">
-              <button
-                onClick={() => onToggleMode('sample')}
-                className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 ${
-                  mode === 'sample'
-                    ? 'bg-[#272a33] text-amber-300 font-semibold'
-                    : 'text-[#9c9990] hover:text-[#f2efe9]'
-                }`}
-                title="Sample Mode: executes against verified benchmark evidence"
-              >
-                <Radio className="w-2.5 h-2.5 text-amber-400" />
-                <span>SAMPLE MODE</span>
-              </button>
-              <button
-                onClick={() => onToggleMode('live')}
-                className={`px-2.5 py-1 rounded transition-colors ${
-                  mode === 'live'
-                    ? 'bg-amber-950/70 border border-amber-700/60 text-amber-300 font-semibold'
-                    : 'text-[#9c9990] hover:text-[#f2efe9]'
-                }`}
-                title="Live Docker Mode: connects to local Zetaris Docker endpoint"
-              >
-                LIVE DOCKER
-              </button>
-            </div>
-
-            {/* Case File Selector */}
-            <div className="flex items-center bg-[#16181e] border border-[#272a33] rounded px-2 py-1 text-xs">
-              <FolderSearch className="w-3.5 h-3.5 text-amber-400 mr-2 shrink-0" />
-              <select
-                value={activeIncidentId}
-                onChange={(e) => onSelectIncident(e.target.value)}
-                disabled={isInvestigating}
-                className="bg-transparent text-[#f2efe9] text-xs font-mono focus:outline-none cursor-pointer pr-1"
-              >
-                <option value="INC-8921" className="bg-[#16181e] text-[#f2efe9]">
-                  CASE #INC-8921: Checkout 500s (Pool Shrink)
-                </option>
-                <option value="INC-6402" className="bg-[#16181e] text-[#f2efe9]">
-                  CASE #INC-6402: Search Latency (Cron Overlap)
-                </option>
-                <option value="INC-3190" className="bg-[#16181e] text-[#f2efe9]">
-                  CASE #INC-3190: Holdout: JWT Clock Skew
-                </option>
-              </select>
-            </div>
-
-            {/* Synthesize Random Case */}
+          {/* Sample / Live Mode Toggle */}
+          <div className="flex items-center rounded border border-[#272a33] bg-[#16181e] p-0.5 text-xs">
             <button
-              onClick={onGenerateRandom}
-              disabled={isInvestigating}
-              className="px-2.5 py-1.5 bg-[#16181e] hover:bg-[#1e2028] text-[#c7c4bc] hover:text-[#f2efe9] border border-[#272a33] rounded text-xs font-mono flex items-center gap-1.5 transition-colors disabled:opacity-40"
-              title="Synthesize new randomized case incident"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>SYNTHESIZE</span>
-            </button>
-
-            {/* Forensic Tests */}
-            <button
-              onClick={onOpenTestModal}
-              className="px-2.5 py-1.5 bg-[#16181e] hover:bg-[#1e2028] text-[#c7c4bc] hover:text-[#f2efe9] border border-[#272a33] rounded text-xs font-mono flex items-center gap-1.5 transition-colors"
-              title="Run Automated Verification Test Suite"
-            >
-              <Terminal className="w-3.5 h-3.5 text-amber-400" />
-              <span>TESTS (3/3)</span>
-            </button>
-
-            {/* Primary Action Button */}
-            <button
-              onClick={onStartInvestigation}
-              disabled={isInvestigating}
-              className={`px-3.5 py-1.5 rounded text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm ${
-                isInvestigating
-                  ? 'bg-amber-950/80 text-amber-300 border border-amber-600/50 cursor-wait'
-                  : 'bg-amber-500 hover:bg-amber-400 text-zinc-950 active:scale-[0.98]'
+              onClick={() => onToggleMode('sample')}
+              className={`px-2 py-0.5 rounded transition-colors ${
+                mode === 'sample'
+                  ? 'bg-[#272a33] text-amber-300 font-medium'
+                  : 'text-[#9c9990] hover:text-[#f2efe9]'
               }`}
+              title="Sample mode with verified benchmark data"
             >
-              {isInvestigating ? (
-                <>
-                  <RefreshCw className="w-3 h-3 animate-spin text-amber-300" />
-                  <span>INVESTIGATING...</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-3 h-3 fill-current text-zinc-950" />
-                  <span>START INVESTIGATION</span>
-                </>
-              )}
+              Sample mode
             </button>
+            <button
+              onClick={() => onToggleMode('live')}
+              className={`px-2 py-0.5 rounded transition-colors ${
+                mode === 'live'
+                  ? 'bg-amber-950/70 border border-amber-700/60 text-amber-300 font-medium'
+                  : 'text-[#9c9990] hover:text-[#f2efe9]'
+              }`}
+              title="Live Docker mode connected to local Zetaris"
+            >
+              Live
+            </button>
+          </div>
+        </div>
+
+        {/* Central Controls: Case Selector */}
+        <div className="flex items-center gap-2 flex-1 max-w-md justify-end sm:justify-center">
+          <label htmlFor="case-select" className="sr-only">
+            Select Incident Case
+          </label>
+          <select
+            id="case-select"
+            value={activeIncidentId}
+            onChange={(e) => onSelectIncident(e.target.value)}
+            disabled={isInvestigating}
+            className="bg-[#16181e] border border-[#272a33] text-[#f2efe9] text-xs sm:text-sm rounded px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer w-full max-w-sm truncate"
+          >
+            <option value="INC-8921">INC-8921 · Checkout 500s (Pool Shrink)</option>
+            <option value="INC-6402">INC-6402 · Search Latency (Cron Overlap)</option>
+            <option value="INC-3190">INC-3190 · Holdout: JWT Clock Drift</option>
+          </select>
+        </div>
+
+        {/* Right Actions: Primary Start Button + Overflow Details Menu */}
+        <div className="flex items-center gap-2">
+          {/* One Primary Button */}
+          <button
+            onClick={onStartInvestigation}
+            disabled={isInvestigating}
+            className={`px-3.5 py-1.5 rounded text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 ${
+              isInvestigating
+                ? 'bg-amber-950/70 text-amber-300 border border-amber-600/40 cursor-wait'
+                : 'bg-amber-500 hover:bg-amber-400 text-zinc-950 active:scale-[0.98]'
+            }`}
+          >
+            {isInvestigating ? (
+              <>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-300" />
+                <span>Investigating...</span>
+              </>
+            ) : (
+              <>
+                <Play className="w-3.5 h-3.5 fill-current text-zinc-950" />
+                <span>Start investigation</span>
+              </>
+            )}
+          </button>
+
+          {/* Details Overflow Menu (Synthesize, Tests, Stack details) */}
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-1.5 rounded text-[#9c9990] hover:text-[#f2efe9] hover:bg-[#1a1c22] border border-transparent hover:border-[#272a33] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+              aria-label="More tools and case options"
+              title="Details & Tools"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </button>
+
+            {isMenuOpen && (
+              <div className="absolute right-0 mt-2 w-56 rounded border border-[#272a33] bg-[#14161b] shadow-xl p-1.5 z-50 text-xs">
+                <button
+                  onClick={() => {
+                    onGenerateRandom();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded text-[#c7c4bc] hover:text-[#f2efe9] hover:bg-[#1a1c22] flex items-center gap-2"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Synthesize random case</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    onOpenTestModal();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded text-[#c7c4bc] hover:text-[#f2efe9] hover:bg-[#1a1c22] flex items-center gap-2"
+                >
+                  <Terminal className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Run verification tests (3/3)</span>
+                </button>
+
+                <div className="my-1 border-t border-[#23262f]" />
+
+                <div className="px-3 py-1.5 text-[11px] text-[#67655e] space-y-0.5">
+                  <div className="text-[#9c9990] font-medium">Stack Configuration</div>
+                  <div>Data: Zetaris Virtual Fabric</div>
+                  <div>Primary AI: Meterless Nightshift</div>
+                  <div>Challenger: NVIDIA Nemotron 340B</div>
+                  <div>Engine: Meterless H-MEM v2</div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
