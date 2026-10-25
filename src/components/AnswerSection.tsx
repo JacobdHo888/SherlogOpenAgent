@@ -6,12 +6,14 @@ interface AnswerSectionProps {
   hypotheses: Hypothesis[];
   onInspectEvidence: (evidenceId: string) => void;
   onNavigateToEvidenceTab: () => void;
+  onNavigateToActionTab?: () => void;
 }
 
 export const AnswerSection: React.FC<AnswerSectionProps> = ({
   hypotheses,
   onInspectEvidence,
   onNavigateToEvidenceTab,
+  onNavigateToActionTab,
 }) => {
   const [expandedHypothesisIds, setExpandedHypothesisIds] = useState<Record<string, boolean>>({});
 
@@ -101,14 +103,25 @@ export const AnswerSection: React.FC<AnswerSectionProps> = ({
 
         {/* Remediation Action */}
         {topHypothesis.recommendedFix && (
-          <div className="flex items-start gap-3 pt-2 text-sm text-[#c7c4bc] border-t border-[#20222a]">
-            <Wrench className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <span className="text-amber-400 font-semibold font-mono text-xs uppercase tracking-wide mr-1.5">
-                Recommended fix:
-              </span>
-              <span>{topHypothesis.recommendedFix}</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 text-sm text-[#c7c4bc] border-t border-[#20222a]">
+            <div className="flex items-start gap-3">
+              <Wrench className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <span className="text-amber-400 font-semibold font-mono text-xs uppercase tracking-wide mr-1.5">
+                  Recommended fix:
+                </span>
+                <span>{topHypothesis.recommendedFix}</span>
+              </div>
             </div>
+
+            {onNavigateToActionTab && (
+              <button
+                onClick={onNavigateToActionTab}
+                className="text-xs font-mono text-amber-400 hover:text-amber-300 font-semibold underline underline-offset-4 self-start sm:self-auto shrink-0 transition-colors"
+              >
+                View concrete fixes & report →
+              </button>
+            )}
           </div>
         )}
       </div>

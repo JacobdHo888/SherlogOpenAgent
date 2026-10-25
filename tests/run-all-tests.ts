@@ -1,6 +1,7 @@
 import { runHMemTests } from './hmem.test';
 import { runEvaluatorTests } from './evaluator.test';
 import { runZetarisTests } from './zetaris.test';
+import { runRemediationTests } from './remediation.test';
 
 export interface ComprehensiveTestReport {
   timestamp: string;
@@ -44,6 +45,15 @@ export async function runAllTests(): Promise<ComprehensiveTestReport> {
     passed: evalRes.passed,
     message: evalRes.message,
     details: evalRes.details,
+  });
+
+  // Suite 4: Remediation Recommendation Citation Verification
+  const remRes = await runRemediationTests();
+  suites.push({
+    name: 'Remediation Agent (Fix Citation Veracity & Incident Report)',
+    passed: remRes.passed,
+    message: remRes.message,
+    details: remRes.details,
   });
 
   const passedSuites = suites.filter((s) => s.passed).length;

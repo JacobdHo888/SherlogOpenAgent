@@ -1,4 +1,4 @@
-export type AgentType = 'planner' | 'investigator' | 'evaluator' | 'risk_domain' | 'hmem_engine';
+export type AgentType = 'planner' | 'investigator' | 'evaluator' | 'risk_domain' | 'hmem_engine' | 'remediation';
 
 export type AIModelId =
   | 'nvidia/nemotron-4-340b-instruct'
@@ -152,6 +152,31 @@ export interface IncidentAlert {
   };
 }
 
+export interface RemediationRecommendation {
+  id: string;
+  title: string;
+  action: string;
+  whyExplanation: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  verificationStep: string;
+  citedEvidenceIds: string[];
+  rollbackPlan?: string;
+  commandSnippet?: string;
+}
+
+export interface IncidentReportDraft {
+  title: string;
+  generatedAt: string;
+  summary: string;
+  impact: string;
+  timeline: { timestamp: string; event: string; evidenceId?: string }[];
+  rootCause: string;
+  evidenceCited: string[];
+  recommendedFixes: RemediationRecommendation[];
+  followUps: string[];
+  markdownContent: string;
+}
+
 export interface FullInvestigationState {
   incident: IncidentAlert;
   status: 'idle' | 'planning' | 'investigating' | 'evaluating' | 'challenging' | 'completed' | 'failed';
@@ -165,5 +190,7 @@ export interface FullInvestigationState {
   hmemMatches: HMemMatch[];
   hypotheses: Hypothesis[];
   rubric: RubricScorecard | null;
+  recommendations: RemediationRecommendation[];
+  incidentReport: IncidentReportDraft | null;
   error?: string;
 }

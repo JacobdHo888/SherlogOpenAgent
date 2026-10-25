@@ -47,6 +47,8 @@ export const AgentTraceView: React.FC<AgentTraceViewProps> = ({
         return 'Risk Agent';
       case 'hmem_engine':
         return 'H-MEM Engine';
+      case 'remediation':
+        return 'Remediation';
       default:
         return 'Agent';
     }

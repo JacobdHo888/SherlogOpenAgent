@@ -1,12 +1,13 @@
 import React from 'react';
-import { CheckCircle2, Activity, Terminal, Scale } from 'lucide-react';
+import { CheckCircle2, Activity, Terminal, Scale, Wrench } from 'lucide-react';
 
-export type ActiveSection = 'answer' | 'evidence' | 'trace' | 'audit';
+export type ActiveSection = 'answer' | 'evidence' | 'action' | 'trace' | 'audit';
 
 interface NavigationTabsProps {
   activeSection: ActiveSection;
   onSelectSection: (section: ActiveSection) => void;
   evidenceCount: number;
+  recommendationCount?: number;
   traceCount: number;
   isInvestigating: boolean;
 }
@@ -15,6 +16,7 @@ export const NavigationTabs: React.FC<NavigationTabsProps> = ({
   activeSection,
   onSelectSection,
   evidenceCount,
+  recommendationCount = 0,
   traceCount,
   isInvestigating,
 }) => {
@@ -29,6 +31,12 @@ export const NavigationTabs: React.FC<NavigationTabsProps> = ({
       label: 'Evidence',
       icon: <Activity className="w-4 h-4" />,
       badge: evidenceCount > 0 ? evidenceCount : undefined,
+    },
+    {
+      id: 'action' as const,
+      label: 'Action',
+      icon: <Wrench className="w-4 h-4" />,
+      badge: recommendationCount > 0 ? recommendationCount : undefined,
     },
     {
       id: 'trace' as const,

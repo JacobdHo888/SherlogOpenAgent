@@ -25,6 +25,10 @@ export class SampleDataStore {
     }
   }
 
+  public setExclusiveEvidence(evidence: EvidenceRow[]): void {
+    this.rows = [...evidence];
+  }
+
   public getAll(): EvidenceRow[] {
     return [...this.rows];
   }

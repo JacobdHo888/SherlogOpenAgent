@@ -4,6 +4,7 @@ import { defaultInvestigatorAgent } from './investigator';
 import { defaultEvaluatorAgent } from './evaluator';
 import { defaultRiskDomainAgent } from './riskDomain';
 import { defaultNightshiftClient } from '../nightshift/client';
+import { defaultRemediationAgent } from './remediation';
 import {
   AgentTraceStep,
   EvidenceRow,
@@ -34,6 +35,8 @@ export class InvestigationOrchestrator {
       hmemMatches: [],
       hypotheses: [],
       rubric: null,
+      recommendations: [],
+      incidentReport: null,
     };
   }
 
@@ -214,6 +217,41 @@ export class InvestigationOrchestrator {
         actionTaken: `Unmasked ${identifiedRedHerrings.length} red herrings. Re-ranked top root cause with ${(rankedHypotheses[0]?.calibratedConfidence * 100).toFixed(0)}% calibrated confidence.`,
         durationMs: Date.now() - riskStart,
       });
+
+      // 6. Remediation Agent: Formulate concrete fixes with verified evidence citations
+      const remStart = Date.now();
+      const topHypothesis =
+        rankedHypotheses.find((h) => h.rank === 1 && !h.isRedHerring) || rankedHypotheses[0];
+
+      if (topHypothesis) {
+        const { recommendations, thought: remThought, actionTaken: remAction } =
+          await defaultRemediationAgent.proposeRemediation(
+            this.state.incident,
+            topHypothesis,
+            this.state.collectedEvidence
+          );
+
+        const report = defaultRemediationAgent.generateIncidentReportDraft(
+          this.state.incident,
+          topHypothesis,
+          recommendations,
+          this.state.collectedEvidence,
+          this.state.rubric
+        );
+
+        this.updateState({ recommendations, incidentReport: report });
+
+        this.addTrace({
+          agent: 'remediation',
+          agentLabel: 'Remediation Agent',
+          timestamp: new Date().toISOString(),
+          modelUsed: 'meterless/nightshift-router-v1',
+          title: 'Formulating Actionable Remediation Fixes',
+          thought: remThought,
+          actionTaken: remAction,
+          durationMs: Date.now() - remStart,
+        });
+      }
 
       break;
     }

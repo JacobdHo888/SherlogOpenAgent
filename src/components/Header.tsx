@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, RefreshCw, MoreHorizontal, Sparkles, Terminal, Info, Check } from 'lucide-react';
+import { Play, RefreshCw, MoreHorizontal, Sparkles, Terminal, Info, Check, Award } from 'lucide-react';
 
 interface HeaderProps {
   activeIncidentId: string;
@@ -8,6 +8,7 @@ interface HeaderProps {
   isInvestigating: boolean;
   onStartInvestigation: () => void;
   onOpenTestModal: () => void;
+  onOpenBenchmarkModal: () => void;
   mode: 'sample' | 'live';
   onToggleMode: (mode: 'sample' | 'live') => void;
 }
@@ -19,6 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   isInvestigating,
   onStartInvestigation,
   onOpenTestModal,
+  onOpenBenchmarkModal,
   mode,
   onToggleMode,
 }) => {
@@ -142,13 +144,24 @@ export const Header: React.FC<HeaderProps> = ({
 
                 <button
                   onClick={() => {
+                    onOpenBenchmarkModal();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded text-[#c7c4bc] hover:text-[#f2efe9] hover:bg-[#1a1c22] flex items-center gap-2"
+                >
+                  <Award className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Run benchmark (10 cases)</span>
+                </button>
+
+                <button
+                  onClick={() => {
                     onOpenTestModal();
                     setIsMenuOpen(false);
                   }}
                   className="w-full text-left px-3 py-2 rounded text-[#c7c4bc] hover:text-[#f2efe9] hover:bg-[#1a1c22] flex items-center gap-2"
                 >
                   <Terminal className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Run verification tests (3/3)</span>
+                  <span>Run verification tests (4/4)</span>
                 </button>
 
                 <div className="my-1 border-t border-[#23262f]" />

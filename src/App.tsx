@@ -8,12 +8,15 @@ import { AgentTraceView } from './components/AgentTraceView';
 import { EvaluatorScorecardView } from './components/EvaluatorScorecardView';
 import { EvidenceInspectModal } from './components/EvidenceInspectModal';
 import { TestRunnerModal } from './components/TestRunnerModal';
+import { BenchmarkModal } from './components/BenchmarkModal';
 import { SEEDED_INCIDENTS } from './data/incidents';
 import { generateRandomIncident } from './data/generator';
 import { globalSampleStore } from './data/sampleStore';
 import { defaultZetarisClient } from './zetaris/client';
 import { InvestigationOrchestrator } from './agents/orchestrator';
 import { EvidenceRow, FullInvestigationState, IncidentAlert } from './types/investigation';
+
+import { ActionSection } from './components/ActionSection';
 
 export default function App() {
   const [activeIncidentId, setActiveIncidentId] = useState<string>('INC-8921');
@@ -31,8 +34,9 @@ export default function App() {
   const [selectedEvidenceId, setSelectedEvidenceId] = useState<string | null>(null);
   const [inspectModalEvidence, setInspectModalEvidence] = useState<EvidenceRow | null>(null);
 
-  // Test suite modal
+  // Test suite modal & Benchmark modal
   const [isTestModalOpen, setIsTestModalOpen] = useState<boolean>(false);
+  const [isBenchmarkModalOpen, setIsBenchmarkModalOpen] = useState<boolean>(false);
 
   // Handle switching incident
   const handleSelectIncident = (id: string) => {
@@ -103,6 +107,7 @@ export default function App() {
         isInvestigating={isInvestigating}
         onStartInvestigation={runInvestigation}
         onOpenTestModal={() => setIsTestModalOpen(true)}
+        onOpenBenchmarkModal={() => setIsBenchmarkModalOpen(true)}
         mode={mode}
         onToggleMode={(m) => {
           setMode(m);
@@ -115,11 +120,12 @@ export default function App() {
         {/* 2. Compact Incident Summary */}
         <IncidentAlertCard incident={currentIncident} />
 
-        {/* 3. Navigation Bar (Answer, Evidence, Agent trace, Audit) */}
+        {/* 3. Navigation Bar (Answer, Evidence, Action, Agent trace, Audit) */}
         <NavigationTabs
           activeSection={activeSection}
           onSelectSection={setActiveSection}
           evidenceCount={investigationState?.collectedEvidence.length || 0}
+          recommendationCount={investigationState?.recommendations.length || 0}
           traceCount={investigationState?.traces.length || 0}
           isInvestigating={isInvestigating}
         />
@@ -131,6 +137,7 @@ export default function App() {
               hypotheses={investigationState?.hypotheses || []}
               onInspectEvidence={handleInspectEvidenceFromAnswer}
               onNavigateToEvidenceTab={handleNavigateToEvidence}
+              onNavigateToActionTab={() => setActiveSection('action')}
             />
           )}
 
@@ -139,6 +146,15 @@ export default function App() {
               evidence={investigationState?.collectedEvidence || []}
               selectedEvidenceId={selectedEvidenceId}
               onSelectEvidence={setSelectedEvidenceId}
+            />
+          )}
+
+          {activeSection === 'action' && (
+            <ActionSection
+              recommendations={investigationState?.recommendations || []}
+              incidentReport={investigationState?.incidentReport || null}
+              onInspectEvidence={handleInspectEvidenceFromAnswer}
+              isInvestigating={isInvestigating}
             />
           )}
 
@@ -171,6 +187,12 @@ export default function App() {
       <TestRunnerModal
         isOpen={isTestModalOpen}
         onClose={() => setIsTestModalOpen(false)}
+      />
+
+      {/* Multi-Incident Benchmark Results Modal (from Details menu) */}
+      <BenchmarkModal
+        isOpen={isBenchmarkModalOpen}
+        onClose={() => setIsBenchmarkModalOpen(false)}
       />
 
       {/* 5. Minimalist Quiet Footer */}
